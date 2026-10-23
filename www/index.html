@@ -196,12 +196,23 @@ async function ppShow(){const d=ppEnsure();document.getElementById('pe').style.d
 function ppGo(d){const n=Math.max(1,Math.min(PDOC.numPages,pgn+d));if(n===pgn)return;pgn=n;ppShow();dayTick('ch')}
 function ppZ(d){pzoom=Math.max(.6,Math.min(3,pzoom+d));ppShow()}
 function idb(){return new Promise((ok,no)=>{const q=indexedDB.open('bibpdf',1);q.onupgradeneeded=()=>q.result.createObjectStore('p');q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)})}
+function uploadUiReject(file){
+ let el=document.getElementById('uploadProgress');
+ if(!el){el=document.createElement('div');el.id='uploadProgress';el.innerHTML='<div class="up-head"><strong id="upTitle">No se inició la subida</strong><button type="button" id="upClose" aria-label="Cerrar" onclick="uploadUiHide()">×</button></div><div class="up-track"><div id="upFill"></div></div><div id="upDetail"></div>';document.body.appendChild(el)}
+ el.style.display='block';el.classList.remove('up-done');el.classList.add('up-error');
+ document.getElementById('upTitle').textContent='⚠️ Archivo demasiado grande';
+ document.getElementById('upFill').style.width='100%';
+ const mb=(file.size/1024/1024).toFixed(1);
+ document.getElementById('upDetail').textContent=`${file.name}: ${mb} MB. No se subió ningún dato. El plan gratuito de Supabase admite hasta 50 MB por archivo; este archivo supera el límite. Sigue guardado en este celular, pero no estará disponible en el computador. Para sincronizarlo gratis, reduce/comprime el PDF a menos de 50 MB o tendremos que cambiar a otro almacenamiento.`;
+ say(`No se inició la subida: el PDF pesa ${mb} MB y el límite gratuito es 50 MB.`);
+}
 function uploadUiStart(file){
+ window._uploadStartTime=Date.now();
  let el=document.getElementById('uploadProgress');
  if(!el){el=document.createElement('div');el.id='uploadProgress';el.innerHTML='<div class="up-head"><strong id="upTitle">Subiendo archivo…</strong><button type="button" id="upClose" aria-label="Cerrar" onclick="uploadUiHide()">×</button></div><div class="up-track"><div id="upFill"></div></div><div id="upDetail">Preparando archivo…</div>';document.body.appendChild(el)}
  el.style.display='block';el.classList.remove('up-error','up-done');document.getElementById('upTitle').textContent='Subiendo '+(file.name||'archivo');document.getElementById('upDetail').textContent=(file.size/1024/1024).toFixed(2)+' MB · Preparando subida…';document.getElementById('upFill').style.width='0%';
 }
-function uploadUiUpdate(pct,detail){const el=document.getElementById('uploadProgress');if(!el)return;document.getElementById('upFill').style.width=Math.max(0,Math.min(100,pct))+'%';document.getElementById('upTitle').textContent='Subiendo archivo… '+Math.round(pct)+'%';document.getElementById('upDetail').textContent=detail||'No cierres esta ventana mientras termina la subida.'}
+function uploadUiUpdate(pct,detail){const el=document.getElementById('uploadProgress');if(!el)return;document.getElementById('upFill').style.width=Math.max(0,Math.min(100,pct))+'%';document.getElementById('upTitle').textContent='Subiendo archivo… '+Math.round(pct)+'%';let timing='';if(window._uploadStartTime&&pct>0&&pct<100){const elapsed=(Date.now()-window._uploadStartTime)/1000;const remaining=elapsed*(100-pct)/pct;const fmt=n=>n<60?Math.ceil(n)+' s':Math.floor(n/60)+' min '+Math.ceil(n%60)+' s';timing=' · transcurrido '+fmt(elapsed)+' · estimado restante '+fmt(remaining)}document.getElementById('upDetail').textContent=(detail||'No cierres esta ventana mientras termina la subida.')+timing}
 function uploadUiFinish(ok,msg){const el=document.getElementById('uploadProgress');if(!el)return;el.classList.toggle('up-done',!!ok);el.classList.toggle('up-error',!ok);document.getElementById('upTitle').textContent=ok?'✓ Archivo sincronizado':'No se pudo sincronizar';document.getElementById('upDetail').textContent=msg;if(ok)document.getElementById('upFill').style.width='100%'}
 function uploadUiHide(){const el=document.getElementById('uploadProgress');if(el)el.style.display='none'}
 function uploadToSupabaseWithProgress(id,file){return new Promise(async(resolve)=>{
@@ -229,7 +240,7 @@ async function uploadCloudFile(id,file){
  if(!file)return;
  if(!SB||!U)return say('No hay una sesión activa. Entra en ☁️ Cuenta antes de sincronizar.');
  if(!/\.(epub|pdf)$/i.test(file.name))return say('Selecciona un archivo PDF o EPUB.');
- if(file.size>50*1024*1024)return say('El archivo supera el límite gratuito de 50 MB.');
+ if(file.size>50*1024*1024)return uploadUiReject(file);
  const b=own().find(x=>x.id===id);if(!b)return say('No encontré ese libro en tu biblioteca.');
  say('Subiendo archivo a la nube…');
  const ok=await putPdf(id,file);
