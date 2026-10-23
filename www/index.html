@@ -193,22 +193,44 @@ async function readPdf(id){try{const d=await idb();let r=await new Promise((ok,n
 function closePdf(){save();['wd','fd','tm','tr'].forEach(x=>{const e=document.getElementById(x);if(e)e.remove()});const pp=document.getElementById('pp');if(pp)pp.style.display='none';document.getElementById('pf').style.display='';const nt=document.getElementById('nt');if(nt)nt.remove();document.getElementById('pv').style.display='none';document.getElementById('pe').style.display='none';document.getElementById('pf').src='about:blank'}
 let EP=[],ei=0;
 async function openEpub(file){
- try{const z=await JSZip.loadAsync(file);
-  const xml=s=>new DOMParser().parseFromString(s,'application/xml'),rd=p=>z.file(p).async('string');
-  const opfPath=xml(await rd('META-INF/container.xml')).querySelector('rootfile').getAttribute('full-path');
+ try{
+  const z=await JSZip.loadAsync(file);
+  const xml=s=>new DOMParser().parseFromString(s,'application/xml');
+  const rd=async p=>{const f=z.file(p);if(!f)throw new Error('Falta el archivo '+p);return f.async('string')};
+  const els=(root,name)=>Array.from(root.getElementsByTagNameNS('*',name));
+  const container=xml(await rd('META-INF/container.xml'));
+  const rootfile=els(container,'rootfile')[0];
+  if(!rootfile)throw new Error('El EPUB no indica dónde está su índice.');
+  const opfPath=rootfile.getAttribute('full-path');
+  if(!opfPath)throw new Error('El EPUB tiene una ruta de índice vacía.');
   const opf=xml(await rd(opfPath)),man={};
-  opf.querySelectorAll('manifest > item').forEach(i=>man[i.getAttribute('id')]=i.getAttribute('href'));
+  els(opf,'item').forEach(i=>{
+   const parent=i.parentNode;
+   if(parent&&String(parent.localName).toLowerCase()==='manifest')man[i.getAttribute('id')]=i.getAttribute('href');
+  });
+  const spine=els(opf,'spine');
+  const refs=spine.length?els(spine[0],'itemref'):[];
+  if(!refs.length)throw new Error('El índice del EPUB no contiene capítulos.');
   EP=[];
-  for(const r of opf.querySelectorAll('spine > itemref')){const h=man[r.getAttribute('idref')];if(!h)continue;
-   const f=z.file(decodeURIComponent(new URL(h,'http://x/'+opfPath).pathname.slice(1)));if(!f)continue;
+  for(const r of refs){
+   const h=man[r.getAttribute('idref')];if(!h)continue;
+   const cleanHref=h.split('#')[0];
+   const fullPath=decodeURIComponent(new URL(cleanHref,'https://epub.invalid/'+opfPath).pathname.replace(/^\//,''));
+   const f=z.file(fullPath);if(!f)continue;
    const d=new DOMParser().parseFromString(await f.async('string'),'text/html');
-   d.querySelectorAll('br').forEach(b=>b.replaceWith('\n'));
-   let t=[...d.body.querySelectorAll('h1,h2,h3,h4,p,li,blockquote')].filter(n=>!n.querySelector('p,li,h1,h2,h3,h4,blockquote')).map(n=>n.textContent).flatMap(x=>x.split(/\n+/)).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
-   if(!t.length)t=d.body.textContent.split(/\n+/).map(x=>x.replace(/\s+/g,' ').trim()).filter(Boolean);
-   if(t.length)EP.push(t)}
-  PC={};if(!EP.length)return say('No pude leer el texto de este EPUB.');
-  ei=(S.pos[RB]&&S.pos[RB].i<EP.length)?S.pos[RB].i:0;{const pe=document.getElementById('pe');if(!pe._sc){pe._sc=1;pe.addEventListener('scroll',()=>{clearTimeout(window._sp);window._sp=setTimeout(savePos,700)})}}showEp(true);
- }catch(e){say('No se pudo abrir el EPUB.')}}
+   d.querySelectorAll('script,style,nav,svg').forEach(n=>n.remove());
+   d.querySelectorAll('br').forEach(b=>b.replaceWith('\\n'));
+   let t=[...d.body.querySelectorAll('h1,h2,h3,h4,p,li,blockquote,div')].filter(n=>!n.querySelector('p,li,h1,h2,h3,h4,blockquote')).map(n=>n.textContent).flatMap(x=>x.split(/\\n+/)).map(x=>x.replace(/\\s+/g,' ').trim()).filter(Boolean);
+   if(!t.length)t=d.body.textContent.split(/\\n+/).map(x=>x.replace(/\\s+/g,' ').trim()).filter(Boolean);
+   if(t.length)EP.push(t);
+  }
+  PC={};
+  if(!EP.length)throw new Error('No encontré texto en los capítulos del EPUB.');
+  ei=(S.pos[RB]&&Number.isInteger(S.pos[RB].i)&&S.pos[RB].i<EP.length)?S.pos[RB].i:0;
+  {const pe=document.getElementById('pe');if(!pe._sc){pe._sc=1;pe.addEventListener('scroll',()=>{clearTimeout(window._sp);window._sp=setTimeout(savePos,700)})}}
+  showEp(true);
+ }catch(e){console.error('Error al abrir EPUB:',e);say('No se pudo abrir el EPUB: '+(e&&e.message?e.message:'formato no válido'))}
+}
 function showEp(rs){const el=document.getElementById('ep'),pe=document.getElementById('pe');el.innerHTML='';
  PARAS(ei).forEach(t=>{const p=document.createElement('p');p.textContent=t;el.appendChild(p)});
  document.getElementById('epn').textContent=(ei+1)+' / '+EP.length;applyHl();
@@ -389,8 +411,8 @@ const SRC=[['','Todas las fuentes'],['gutenberg','Project Gutenberg'],['wikisour
 const LNG=[['es','Espa\u00f1ol'],['en','Ingl\u00e9s'],['fr','Franc\u00e9s'],['pt','Portugu\u00e9s'],['it','Italiano'],['de','Alem\u00e1n'],['la','Lat\u00edn'],['','Cualquier idioma']];
 const langName=c=>{c=(c||'').split('-')[0].toLowerCase();const x=LNG.find(y=>y[0]===c);return x?x[1]:c};
 async function epubMeta(file){try{const z=await JSZip.loadAsync(file),x=p=>new DOMParser().parseFromString(p,'application/xml');
- const op=x(await z.file('META-INF/container.xml').async('string')).querySelector('rootfile').getAttribute('full-path');
- const o=x(await z.file(op).async('string')),g=n=>{const e=o.getElementsByTagNameNS('*',n)[0];return e?e.textContent.trim():''};
+ const c=x(await z.file('META-INF/container.xml').async('string')),rf=c.getElementsByTagNameNS('*','rootfile')[0];
+ if(!rf)return{};const op=rf.getAttribute('full-path'),o=x(await z.file(op).async('string')),g=n=>{const e=o.getElementsByTagNameNS('*',n)[0];return e?e.textContent.trim():''};
  return{lang:g('language'),pub:g('publisher')}}catch(e){return{}}}
 function applyMeta(b,m){if(!b.lang&&m.lang)b.lang=langName(m.lang);if(!b.pub&&m.pub)b.pub=m.pub;save()}
 function showInfo(id){const b=own().find(x=>x.id===id);if(!b)return;
