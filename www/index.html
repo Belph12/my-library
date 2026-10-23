@@ -29,6 +29,19 @@ small{color:var(--sub)}
 .row{display:flex;gap:6px;flex-wrap:wrap}
 .cv{float:left;width:46px;height:64px;margin:0 12px 4px 0;border-radius:6px 10px 10px 6px;background:linear-gradient(90deg,#00000014 0 9%,#ffffff66 9% 11%,transparent 11%),var(--c,#e3dcd2);box-shadow:0 3px 8px #4a445826;color:#4a4458;font-weight:700;font-size:7px;text-align:center;line-height:1.15;padding:8px 4px 0 10px;box-sizing:border-box;overflow:hidden;position:relative}
 .cv i{position:absolute;bottom:3px;left:0;right:0;font-style:normal;font-size:14px}
+
+#uploadProgress{position:fixed;z-index:1000;top:calc(10px + env(safe-area-inset-top,0px));left:12px;right:12px;max-width:520px;margin:auto;padding:12px 14px;background:var(--card);color:var(--ink);border:1px solid var(--soft);border-radius:16px;box-shadow:0 8px 28px #0005;font-size:.88rem}
+#uploadProgress[style*="display: none"]{display:none!important}
+#uploadProgress .up-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+#uploadProgress #upClose{border:0;background:var(--soft);color:var(--ink);border-radius:50%;width:28px;height:28px;font-size:20px;line-height:1;cursor:pointer}
+#uploadProgress .up-track{height:9px;background:var(--soft);border-radius:99px;overflow:hidden}
+#uploadProgress #upFill{height:100%;width:0;background:var(--acc);border-radius:99px;transition:width .12s linear}
+#uploadProgress #upDetail{margin-top:7px;font-size:.78rem;color:var(--sub)}
+#uploadProgress.up-done #upFill{background:#5ca77b}
+#uploadProgress.up-error #upFill{background:#d56b75}
+#rsPanel button.b,#rsPanel label.b{font-size:.78rem;padding:7px 10px}
+#rsPanel select{max-width:100%;font-size:.82rem;margin:0}
+@media(max-width:600px){#rsPanel{width:min(270px,calc(100vw - 28px))!important;max-height:58vh!important}#pe{padding:0 12px!important}#ep{padding-bottom:24px}}
 </style></head><body>
 <div class="top"><h1>Biblioteca Cozy</h1><b id="coins"></b></div>
 <div id="sc" style="height:calc(100vh - 96px);min-height:380px;border-radius:12px;overflow:hidden;margin-top:6px;background:#3a2a1e"></div>
@@ -38,7 +51,7 @@ small{color:var(--sub)}
 <nav id="nav"></nav>
 <div class="msg" id="msg"></div>
 <div id="v"></div></div></div>
-<div id="pv" style="display:none;position:fixed;inset:0;z-index:12;background:var(--bg);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)"><button class="b" style="position:absolute;right:8px;top:calc(8px + env(safe-area-inset-top,0px));z-index:2" onclick="closePdf()">✕ Cerrar</button><button class="b" style="position:absolute;left:8px;top:calc(8px + env(safe-area-inset-top,0px));z-index:2" onclick="finishBook()">✅ Terminé</button><div id="pt" style="position:absolute;left:50%;transform:translateX(-50%);bottom:70px;z-index:3;max-width:90%;background:#000c;color:#fff;padding:8px 12px;border-radius:10px;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center"></div><iframe id="pf" style="width:100%;height:100%;border:0"></iframe><div id="pe" style="display:none;position:absolute;inset:0;overflow:auto;padding:0 14px;box-sizing:border-box"><div id="rs" style="position:sticky;top:0;z-index:1;padding:calc(10px + env(safe-area-inset-top,0px)) 90px 8px 110px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;background:inherit"><button class="b" onclick="notesOpen()">📝 Notas</button><button class="b" onclick="hlAdd()">🖍 Resaltar</button><button class="b" onclick="wordOpen()">📖 Palabra</button><button class="b" onclick="findOpen()">🔎 Buscar</button><button class="b" id="pbtn" onclick="paraToggle()">¶ Párrafos</button><button class="b" onclick="timerOpen()">⏱ Temporizador</button><button class="b" onclick="trOpen()">🌐 Traducir</button><button class="b" onclick="rsSz(-1)">A−</button><button class="b" onclick="rsSz(1)">A+</button><select id="rbg" style="width:auto" onchange="rsSet('bg',this.value)"><option value="claro">Claro</option><option value="sepia">Sepia</option><option value="oscuro">Oscuro</option><option value="verde">Verde suave</option><option value="gris">Gris</option></select><select id="rff" style="width:auto" onchange="rsSet('ff',this.value)"></select><label class="b" style="padding:7px 10px">＋ Fuente<input type="file" accept=".ttf,.otf,.woff,.woff2" style="display:none" onchange="addFont(this.files[0])"></label></div><div id="ep" style="max-width:560px;margin:auto;line-height:1.6"></div><div style="position:sticky;bottom:0;background:inherit;padding:10px;text-align:center"><button class="b" onclick="epGo(-1)">◀</button> <span id="epn"></span> <button class="b" onclick="epGo(1)">▶</button></div></div></div>
+<div id="pv" style="display:none;position:fixed;inset:0;z-index:12;background:var(--bg);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)"><button class="b" style="position:absolute;right:8px;top:calc(8px + env(safe-area-inset-top,0px));z-index:2" onclick="closePdf()">✕ Cerrar</button><button class="b" style="position:absolute;left:8px;top:calc(8px + env(safe-area-inset-top,0px));z-index:2" onclick="finishBook()">✅ Terminé</button><div id="pt" style="position:absolute;left:50%;transform:translateX(-50%);bottom:70px;z-index:3;max-width:90%;background:#000c;color:#fff;padding:8px 12px;border-radius:10px;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center"></div><iframe id="pf" style="width:100%;height:100%;border:0"></iframe><div id="pe" style="display:none;position:absolute;inset:0;overflow:auto;padding:0 14px;box-sizing:border-box"><div id="rs" style="position:sticky;top:0;z-index:5;padding:calc(8px + env(safe-area-inset-top,0px)) 4px 8px;display:flex;justify-content:flex-end;align-items:flex-start;background:transparent"><button class="b" id="rsmenuBtn" onclick="rsMenuToggle()" aria-expanded="false" style="font-size:.78rem;padding:7px 11px;box-shadow:0 2px 8px #0002">⚙️ Controles</button><div id="rsPanel" style="display:none;position:absolute;right:4px;top:calc(48px + env(safe-area-inset-top,0px));width:min(290px,calc(100vw - 36px));max-height:62vh;overflow:auto;padding:10px;background:var(--card);color:var(--ink);border:1px solid var(--soft);border-radius:16px;box-shadow:0 8px 28px #0005;gap:6px;align-items:center;flex-wrap:wrap"><button class="b" onclick="notesOpen()">📝 Notas</button><button class="b" onclick="hlAdd()">🖍 Resaltar</button><button class="b" onclick="wordOpen()">📖 Palabra</button><button class="b" onclick="findOpen()">🔎 Buscar</button><button class="b" id="pbtn" onclick="paraToggle()">¶ Párrafos</button><button class="b" onclick="timerOpen()">⏱ Temporizador</button><button class="b" onclick="trOpen()">🌐 Traducir</button><button class="b" onclick="rsSz(-1)">A−</button><button class="b" onclick="rsSz(1)">A+</button><select id="rbg" style="width:auto" onchange="rsSet('bg',this.value)"><option value="claro">Claro</option><option value="sepia">Sepia</option><option value="oscuro">Oscuro</option><option value="verde">Verde suave</option><option value="gris">Gris</option></select><select id="rff" style="width:auto" onchange="rsSet('ff',this.value)"></select><label class="b" style="padding:7px 10px">＋ Fuente<input type="file" accept=".ttf,.otf,.woff,.woff2" style="display:none" onchange="addFont(this.files[0])"></label></div></div><div id="ep" style="max-width:560px;margin:auto;line-height:1.6"></div><div style="position:sticky;bottom:0;background:inherit;padding:10px;text-align:center"><button class="b" onclick="epGo(-1)">◀</button> <span id="epn"></span> <button class="b" onclick="epGo(1)">▶</button></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -183,24 +196,59 @@ async function ppShow(){const d=ppEnsure();document.getElementById('pe').style.d
 function ppGo(d){const n=Math.max(1,Math.min(PDOC.numPages,pgn+d));if(n===pgn)return;pgn=n;ppShow();dayTick('ch')}
 function ppZ(d){pzoom=Math.max(.6,Math.min(3,pzoom+d));ppShow()}
 function idb(){return new Promise((ok,no)=>{const q=indexedDB.open('bibpdf',1);q.onupgradeneeded=()=>q.result.createObjectStore('p');q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)})}
+function uploadUiStart(file){
+ let el=document.getElementById('uploadProgress');
+ if(!el){el=document.createElement('div');el.id='uploadProgress';el.innerHTML='<div class="up-head"><strong id="upTitle">Subiendo archivo…</strong><button type="button" id="upClose" aria-label="Cerrar" onclick="uploadUiHide()">×</button></div><div class="up-track"><div id="upFill"></div></div><div id="upDetail">Preparando archivo…</div>';document.body.appendChild(el)}
+ el.style.display='block';el.classList.remove('up-error','up-done');document.getElementById('upTitle').textContent='Subiendo '+(file.name||'archivo');document.getElementById('upDetail').textContent=(file.size/1024/1024).toFixed(2)+' MB · Preparando subida…';document.getElementById('upFill').style.width='0%';
+}
+function uploadUiUpdate(pct,detail){const el=document.getElementById('uploadProgress');if(!el)return;document.getElementById('upFill').style.width=Math.max(0,Math.min(100,pct))+'%';document.getElementById('upTitle').textContent='Subiendo archivo… '+Math.round(pct)+'%';document.getElementById('upDetail').textContent=detail||'No cierres esta ventana mientras termina la subida.'}
+function uploadUiFinish(ok,msg){const el=document.getElementById('uploadProgress');if(!el)return;el.classList.toggle('up-done',!!ok);el.classList.toggle('up-error',!ok);document.getElementById('upTitle').textContent=ok?'✓ Archivo sincronizado':'No se pudo sincronizar';document.getElementById('upDetail').textContent=msg;if(ok)document.getElementById('upFill').style.width='100%'}
+function uploadUiHide(){const el=document.getElementById('uploadProgress');if(el)el.style.display='none'}
+function uploadToSupabaseWithProgress(id,file){return new Promise(async(resolve)=>{
+ try{
+  const {data,error}=await SB.auth.getSession();if(error)throw error;
+  const token=data&&data.session&&data.session.access_token;if(!token)throw new Error('La sesión expiró. Vuelve a iniciar sesión.');
+  const path=encodeURIComponent(U.id)+'/'+encodeURIComponent(id);
+  const url=SB_URL+'/storage/v1/object/books/'+path;
+  const xhr=new XMLHttpRequest();xhr.open('POST',url,true);xhr.setRequestHeader('apikey',SB_KEY);xhr.setRequestHeader('Authorization','Bearer '+token);xhr.setRequestHeader('x-upsert','true');xhr.setRequestHeader('Content-Type',file.type||'application/octet-stream');
+  xhr.upload.onprogress=e=>{if(e.lengthComputable){const pct=e.total?e.loaded/e.total*100:0;uploadUiUpdate(pct,`${(e.loaded/1024/1024).toFixed(2)} de ${(e.total/1024/1024).toFixed(2)} MB`)}else{document.getElementById('upTitle').textContent='Subiendo archivo…';document.getElementById('upDetail').textContent='El navegador no informa el porcentaje; la subida sigue en curso.'}};
+  xhr.onload=()=>{if(xhr.status>=200&&xhr.status<300){uploadUiFinish(true,'Subida confirmada. El archivo ya está en la nube.');resolve({ok:true})}else{let message='HTTP '+xhr.status;try{const j=JSON.parse(xhr.responseText);message=j.message||j.error||message}catch(_){}uploadUiFinish(false,message);resolve({ok:false,error:{message}})}};
+  xhr.onerror=()=>{const message='Error de red durante la subida. Comprueba tu conexión.';uploadUiFinish(false,message);resolve({ok:false,error:{message}})};
+  xhr.onabort=()=>{const message='La subida fue cancelada.';uploadUiFinish(false,message);resolve({ok:false,error:{message}})};
+  xhr.send(file);
+ }catch(e){const message=e.message||String(e);uploadUiFinish(false,message);resolve({ok:false,error:{message}})}
+})}
 async function putPdf(id,file){
  try{const d=await idb();d.transaction('p','readwrite').objectStore('p').put(file,id)}catch(e){say('No se pudo guardar el archivo en este dispositivo.')}
  if(!SB||!U){say('📱 Archivo guardado solo en este dispositivo. Entra en ☁️ Cuenta y vuelve a adjuntarlo para sincronizarlo.');return false}
- try{const r=await SB.storage.from('books').upload(U.id+'/'+id,file,{upsert:true,contentType:file.type||'application/octet-stream'});
-  if(r.error){say('No se pudo subir el archivo a la nube: '+r.error.message+' Comprueba el almacenamiento de Supabase.');return false}
-  say('☁️ Archivo guardado en la nube y disponible en tus otros dispositivos.');return true
- }catch(e){say('Falló la subida a la nube: '+(e.message||e));return false}}
+ uploadUiStart(file);
+ const r=await uploadToSupabaseWithProgress(id,file);
+ if(!r.ok){say('No se pudo subir el archivo: '+r.error.message+' Comprueba el bucket “books” y sus permisos.');return false}
+ say('☁️ Archivo guardado en la nube y disponible en tus otros dispositivos.');return true}
 async function uploadCloudFile(id,file){
- if(!file)return;if(!SB||!U)return say('Primero entra en ☁️ Cuenta con la misma cuenta que usarás en el otro dispositivo.');
+ if(!file)return;
+ if(!SB||!U)return say('No hay una sesión activa. Entra en ☁️ Cuenta antes de sincronizar.');
  if(!/\.(epub|pdf)$/i.test(file.name))return say('Selecciona un archivo PDF o EPUB.');
  if(file.size>50*1024*1024)return say('El archivo supera el límite gratuito de 50 MB.');
  const b=own().find(x=>x.id===id);if(!b)return say('No encontré ese libro en tu biblioteca.');
- b.pdf=file.name;save();await putPdf(id,file);render();showInfo(id)}
-async function readPdf(id){try{const d=await idb();let r=await new Promise((ok,no)=>{const q=d.transaction('p').objectStore('p').get(id);q.onsuccess=()=>ok(q.result);q.onerror=()=>no()});
+ say('Subiendo archivo a la nube…');
+ const ok=await putPdf(id,file);
+ if(!ok){say('La nube no confirmó la subida. Revisa el error anterior; puede faltar el bucket “books” o sus permisos.');return}
+ b.pdf=file.name;save();render();showInfo(id);say('☁️ Subida confirmada. Ahora prueba abrir el libro en el computador.')}
+async function readPdf(id){try{
+ const d=await idb();let r=await new Promise((ok,no)=>{const q=d.transaction('p').objectStore('p').get(id);q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)});
  const bk=own().find(x=>x.id===id),isE=/\.epub$/i.test((bk&&bk.pdf)||(r&&r.name)||'');
- if(!r&&SB&&U){const dl=await SB.storage.from('books').download(U.id+'/'+id);if(dl.data){r=new Blob([dl.data],{type:isE?'application/epub+zip':'application/pdf'});try{d.transaction('p','readwrite').objectStore('p').put(r,id)}catch(e){}}}
- if(!r)return say('El archivo no está guardado en este navegador ni en la nube.');
- RB=id;S.last={id,ts:Date.now()};save();if(isE)return openEpub(r);return openPdf(r)}catch(e){say('No se pudo abrir el archivo.')}}
+ if(!r){
+  if(!SB)return say('No se pudo conectar con el servicio de nube. Recarga la página e inténtalo de nuevo.');
+  if(!U)return say('El archivo no está en este navegador. Entra en ☁️ Cuenta con la misma cuenta que usaste para subirlo.');
+  say('Buscando el archivo en la nube…');
+  const dl=await SB.storage.from('books').download(U.id+'/'+id);
+  if(dl.error)return say('Error al descargar desde la nube: '+dl.error.message+' (archivo: '+id+').');
+  if(dl.data){r=new Blob([dl.data],{type:isE?'application/epub+zip':'application/pdf'});try{d.transaction('p','readwrite').objectStore('p').put(r,id)}catch(e){}}
+ }
+ if(!r)return say('La nube no devolvió ningún archivo para este libro. Vuelve al celular y sincronízalo; espera el mensaje de subida confirmada.');
+ RB=id;S.last={id,ts:Date.now()};save();if(isE)return openEpub(r);return openPdf(r)
+ }catch(e){say('Error al abrir o descargar el archivo: '+(e&&e.message?e.message:String(e)))}}
 function closePdf(){save();['wd','fd','tm','tr'].forEach(x=>{const e=document.getElementById(x);if(e)e.remove()});const pp=document.getElementById('pp');if(pp)pp.style.display='none';document.getElementById('pf').style.display='';const nt=document.getElementById('nt');if(nt)nt.remove();document.getElementById('pv').style.display='none';document.getElementById('pe').style.display='none';document.getElementById('pf').src='about:blank'}
 let EP=[],ei=0;
 async function openEpub(file){
@@ -244,7 +292,7 @@ async function openEpub(file){
 }
 function showEp(rs){const el=document.getElementById('ep'),pe=document.getElementById('pe');el.innerHTML='';
  PARAS(ei).forEach(t=>{const p=document.createElement('p');p.textContent=t;el.appendChild(p)});
- document.getElementById('epn').textContent=(ei+1)+' / '+EP.length;applyHl();
+ document.getElementById('epn').textContent=(ei+1)+' / '+EP.length;applyHl();rsMenuToggle(false);
  if(RB){const m=S.ch[RB]===undefined?-1:S.ch[RB];if(ei>m){S.ch[RB]=ei;addXP(2);save()}}{const pp=document.getElementById('pp');if(pp)pp.style.display='none'}rsApply();document.getElementById('pv').style.display='block';pe.style.display='block';pe.scrollTop=rs&&S.pos[RB]?(S.pos[RB].y||0):0;savePos()}
 function epGo(d){ei=Math.max(0,Math.min(EP.length-1,ei+d));showEp();dayTick('ch')}
 let C=null,CU=null,spawnT=6;
@@ -286,6 +334,7 @@ let RS={sz:18,bg:'sepia',ff:'Lora',fonts:[],para:true,tl:'es',bi:false,trMail:''
 try{Object.assign(RS,JSON.parse(localStorage.getItem('bibread')||'{}'))}catch(e){}
 const BGS={claro:['#fffdf7','#222'],sepia:['#f4ecd8','#4b3a28'],oscuro:['#1c1c1e','#d8d4cc'],verde:['#e3efe0','#2f3b2f'],gris:['#e5e5e5','#333']};
 const FF=[['Lora','Lora, Georgia, serif'],['Atkinson Hyperlegible','"Atkinson Hyperlegible", Verdana, sans-serif'],['Courier Prime','"Courier Prime", "Courier New", monospace']];
+function rsMenuToggle(force){const p=document.getElementById('rsPanel'),b=document.getElementById('rsmenuBtn');if(!p||!b)return;const open=typeof force==='boolean'?force:p.style.display==='none';p.style.display=open?'flex':'none';b.setAttribute('aria-expanded',String(open));b.textContent=open?'✕ Cerrar controles':'⚙️ Controles'}
 function rsSave(){try{localStorage.setItem('bibread',JSON.stringify(RS))}catch(e){}}
 function rsSet(k,v){RS[k]=v;rsSave();rsApply()}
 function rsSz(d){RS.sz=Math.max(12,Math.min(34,RS.sz+d*2));rsSave();rsApply()}
