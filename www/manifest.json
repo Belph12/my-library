@@ -1,0 +1,26 @@
+{
+ "name": "Biblioteca Cozy",
+ "short_name": "Biblioteca",
+ "description": "Juego de biblioteca con libros de dominio público",
+ "start_url": "./index.html",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "any",
+ "background_color": "#f7f3ee",
+ "theme_color": "#8f7bd0",
+ "lang": "es",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any maskable"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any maskable"
+  }
+ ]
+}

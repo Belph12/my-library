@@ -1,0 +1,20 @@
+PUBLICAR EL JUEGO GRATIS EN GITHUB Y OBTENER EL APK
+
+PARTE 1: crear el repositorio
+1. Entra a github.com y crea una cuenta (si no tienes).
+2. Toca "New repository", ponle un nombre (por ejemplo biblioteca-cozy), marcalo como PUBLIC y crealo.
+3. Toca "uploading an existing file" y arrastra TODO el contenido de esta carpeta: la carpeta www, package.json, capacitor.config.json y la carpeta .github. Toca "Commit changes".
+   Si la carpeta oculta ".github" no se sube: toca "Add file" > "Create new file", escribe el nombre  .github/workflows/pages.yml  y pega el contenido de ese archivo. Repite con  .github/workflows/android.yml.
+
+PARTE 2: publicar la web (reemplaza a Netlify, sin limite de creditos)
+4. En el repositorio entra a Settings > Pages. En "Source" elige "GitHub Actions".
+5. Entra a la pestana Actions. Si no arranco solo, abre "Publicar la web" y toca "Run workflow".
+6. Cuando aparezca la palomita verde, tu juego queda en:  https://TU-USUARIO.github.io/NOMBRE-DEL-REPOSITORIO/
+7. Para actualizarlo en el futuro: entra a la carpeta www del repositorio, toca "Add file" > "Upload files", sube los archivos nuevos y "Commit changes". Se publica solo en 1 o 2 minutos.
+
+PARTE 3: obtener el APK (opcional)
+8. Entra a Actions, abre "Crear APK" y toca "Run workflow". Espera 5 a 10 minutos.
+9. Abre esa ejecucion, baja a "Artifacts" y descarga "biblioteca-cozy-apk". Dentro esta app-debug.apk.
+10. Pasalo a tu celular e instalalo (Android te pedira permitir apps de origen desconocido).
+
+El APK es de prueba (debug). Para Google Play hace falta una cuenta de desarrollador y un paquete firmado.
