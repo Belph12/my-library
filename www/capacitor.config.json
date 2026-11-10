@@ -1,0 +1,6 @@
+{
+  "appId": "app.biblioteca.cozy",
+  "appName": "Biblioteca Cozy",
+  "webDir": "www",
+  "server": { "androidScheme": "https" }
+}
